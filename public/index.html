@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeadLens – know who to call first</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f8fa; --panel:#ffffff; --ink:#14213d; --muted:#5b6678; --line:#dde3ea;
+  --brand:#1d4ed8; --a:#0f7b5f; --b:#b7791f; --c:#6b7280;
+  --f1:#1d4ed8; --f2:#3b82f6; --f3:#0f7b5f; --f4:#14b8a6; --f5:#b7791f; --f6:#8b5cf6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;align-items:center;gap:16px;padding:14px 24px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+h1{font-size:20px;margin:0;letter-spacing:-.01em}
+header .tag{color:var(--muted)}
+header .actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+button,.btn{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 12px;border-radius:6px;cursor:pointer}
+button:hover,.btn:hover{border-color:var(--brand)}
+button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+main{display:grid;grid-template-columns:280px 1fr;gap:20px;padding:20px 24px;max-width:1400px;margin:0 auto}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+aside{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;align-self:start}
+aside h2{font-size:15px;margin:0 0 4px}
+aside p{margin:0 0 12px;color:var(--muted);font-size:13px}
+label{display:block;font-weight:600;font-size:13px;margin:10px 0 3px}
+input,select{width:100%;font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hint{font-weight:400;color:var(--muted)}
+.stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:110px}
+.stat b{display:block;font-size:22px;line-height:1.2}
+.stat span{color:var(--muted);font-size:12px}
+.toolbar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.toolbar input{max-width:260px}.toolbar select{width:auto}
+.table{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-weight:600;font-size:12px;color:var(--muted);padding:9px 12px;border-bottom:1px solid var(--line);background:#fbfcfd}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr.lead{cursor:pointer}tr.lead:hover td{background:#f9fbff}
+tr.detail td{background:#fbfcfd;padding:14px 16px}
+.tier{display:inline-block;min-width:24px;text-align:center;font-weight:700;border-radius:4px;color:#fff;padding:1px 6px}
+.tier.A{background:var(--a)}.tier.B{background:var(--b)}.tier.C{background:var(--c)}
+.score{display:flex;align-items:center;gap:8px}
+.score b{width:28px;text-align:right}
+.bar{display:flex;width:120px;height:10px;background:#eef1f5;border-radius:5px;overflow:hidden}
+.bar i{display:block;height:100%}
+.sub{color:var(--muted);font-size:12px}
+.badge{font-size:11px;border-radius:4px;padding:1px 6px;border:1px solid var(--line);color:var(--muted)}
+.badge.bad{border-color:#e5a3a3;color:#9b1c1c}
+.reasons{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px 20px;margin:0 0 12px}
+.reason{display:flex;gap:8px;align-items:flex-start}
+.dot{width:10px;height:10px;border-radius:50%;margin-top:5px;flex:none}
+.empty{padding:40px;text-align:center;color:var(--muted)}
+.outreach{background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;display:flex;gap:12px;align-items:center;justify-content:space-between}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+@media(prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>LeadLens</h1><span class="tag">Know who to call first.</span>
+  <div class="actions">
+    <button id="sample">Load sample data</button>
+    <button id="importBtn" class="primary">Import CSV</button>
+    <input id="file" type="file" accept=".csv,text/csv" hidden>
+    <button id="enrich">Write outreach angles for top 10</button>
+    <a class="btn" id="export" href="/api/leads/export.csv">Export CSV</a>
+  </div>
+</header>
+
+<main>
+<aside>
+  <h2>Ideal customer profile</h2>
+  <p>Leads are scored against this. Saving re-ranks everything.</p>
+  <form id="icpForm">
+    <label for="industries">Industries <span class="hint">comma separated</span></label>
+    <input id="industries">
+    <div class="row2">
+      <div><label for="minE">Min employees</label><input id="minE" type="number" min="0"></div>
+      <div><label for="maxE">Max employees</label><input id="maxE" type="number" min="0"></div>
+    </div>
+    <label for="countries">Countries</label><input id="countries">
+    <label for="titles">Role keywords</label><input id="titles">
+    <label for="signals">Buying signals</label><input id="signals">
+    <p style="margin-top:12px"><button class="primary" type="submit">Save and re-rank</button></p>
+  </form>
+</aside>
+
+<section>
+  <div class="stats" id="stats"></div>
+  <div class="toolbar">
+    <input id="search" type="search" placeholder="Search company, name, title" aria-label="Search leads">
+    <select id="tier" aria-label="Filter by tier"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option></select>
+    <select id="sort" aria-label="Sort"><option value="score">Highest score</option><option value="company">Company A–Z</option><option value="recent">Recently added</option></select>
+  </div>
+  <div class="table"><table>
+    <thead><tr><th>Tier</th><th>Score</th><th>Company</th><th>Contact</th><th>Email</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+</section>
+</main>
+<div id="toast" role="status"></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const FACTOR_COLORS = {Industry:'--f1','Company size':'--f2','Decision-maker':'--f3','Email quality':'--f4','Buying signals':'--f5',Geography:'--f6'};
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const list = (s) => s.split(',').map((x) => x.trim()).filter(Boolean);
+let open = new Set();
+
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2800)}
+async function api(path, opts){
+  const res = await fetch('/api'+path, opts);
+  if(!res.ok){let m=res.statusText;try{m=(await res.json()).message||m}catch{}throw new Error(m)}
+  return res.status===204 ? null : res.json();
+}
+
+async function loadIcp(){
+  const i = await api('/icp');
+  $('#industries').value=i.industries.join(', ');$('#countries').value=i.countries.join(', ');
+  $('#titles').value=i.titleKeywords.join(', ');$('#signals').value=i.signalKeywords.join(', ');
+  $('#minE').value=i.minEmployees;$('#maxE').value=i.maxEmployees;
+}
+
+async function refresh(){
+  const q = new URLSearchParams({search:$('#search').value, tier:$('#tier').value, sort:$('#sort').value});
+  const [{total, rows}, st] = await Promise.all([api('/leads?'+q), api('/stats')]);
+  $('#export').href = '/api/leads/export.csv' + ($('#tier').value ? '?tier='+$('#tier').value : '');
+  $('#stats').innerHTML = [
+    ['Leads', st.total], ['Tier A', st.tiers.A||0], ['Tier B', st.tiers.B||0], ['Avg score', st.avgScore],
+    ['Bad emails', (st.emailStatus.invalid||0)+(st.emailStatus.disposable||0)+(st.emailStatus.missing||0)],
+  ].map(([l,v])=>`<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
+  $('#rows').innerHTML = rows.length ? rows.map(renderRow).join('')
+    : `<tr><td colspan="5" class="empty">${total===0 && !$('#search').value && !$('#tier').value ? 'No leads yet. Import a CSV or load the sample data.' : 'No leads match these filters.'}</td></tr>`;
+}
+
+function renderRow(r){
+  const segs = r.reasons.map(x=>`<i style="width:${x.points}%;background:var(${FACTOR_COLORS[x.factor]})" title="${esc(x.factor)}: ${x.points}/${x.max}"></i>`).join('');
+  const bad = ['invalid','disposable','missing'].includes(r.emailStatus);
+  let html = `<tr class="lead" data-id="${r.id}" tabindex="0" aria-expanded="${open.has(r.id)}">
+    <td><span class="tier ${r.tier}">${r.tier}</span></td>
+    <td><div class="score"><b>${r.score}</b><div class="bar">${segs}</div></div></td>
+    <td><b>${esc(r.company)}</b><div class="sub">${esc(r.industry)}${r.employees?` · ${r.employees} employees`:''}</div></td>
+    <td>${esc(r.contactName)||'<span class="sub">No contact</span>'}<div class="sub">${esc(r.title)}</div></td>
+    <td>${esc(r.email)||'<span class="sub">–</span>'} <span class="badge ${bad?'bad':''}">${r.emailStatus}</span></td></tr>`;
+  if(open.has(r.id)){
+    html += `<tr class="detail"><td colspan="5">
+      <div class="reasons">${r.reasons.map(x=>`<div class="reason"><span class="dot" style="background:var(${FACTOR_COLORS[x.factor]})"></span>
+        <div><b>${esc(x.factor)}: ${x.points}/${x.max}</b><div class="sub">${esc(x.note)}</div></div></div>`).join('')}</div>
+      <div class="outreach"><span>${r.outreach?esc(r.outreach):'<span class="sub">No outreach angle yet.</span>'}</span>
+      ${r.outreach?'':`<button data-enrich="${r.id}">Write outreach angle</button>`}</div></td></tr>`;
+  }
+  return html;
+}
+
+$('#rows').addEventListener('click', async (e)=>{
+  const b = e.target.closest('[data-enrich]');
+  if(b){ b.disabled=true;try{await api(`/leads/${b.dataset.enrich}/enrich`,{method:'POST'});await refresh()}catch(err){toast(err.message)} return; }
+  const tr = e.target.closest('tr.lead'); if(!tr) return;
+  const id = Number(tr.dataset.id); open.has(id)?open.delete(id):open.add(id); refresh();
+});
+$('#rows').addEventListener('keydown',(e)=>{ if((e.key==='Enter'||e.key===' ') && e.target.matches('tr.lead')){e.preventDefault();e.target.click()} });
+
+async function importCsv(text){
+  try{
+    const r = await api('/leads/import',{method:'POST',headers:{'Content-Type':'text/csv'},body:text});
+    toast(`${r.inserted} added, ${r.merged} merged as duplicates, ${r.flaggedEmails} bad emails flagged`);
+    await refresh();
+  }catch(err){toast(err.message)}
+}
+$('#importBtn').onclick=()=>$('#file').click();
+$('#file').onchange=async(e)=>{const f=e.target.files[0]; if(f) await importCsv(await f.text()); e.target.value=''};
+$('#sample').onclick=async()=>importCsv(await (await fetch('/sample_leads.csv')).text());
+$('#enrich').onclick=async()=>{
+  $('#enrich').disabled=true;toast('Writing outreach angles…');
+  try{const r=await api('/leads/enrich',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({limit:10})});toast(`${r.enriched} outreach angles written`);await refresh()}
+  catch(err){toast(err.message)} finally{$('#enrich').disabled=false}
+};
+$('#icpForm').onsubmit=async(e)=>{
+  e.preventDefault();
+  try{
+    await api('/icp',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      industries:list($('#industries').value),countries:list($('#countries').value),titleKeywords:list($('#titles').value),
+      signalKeywords:list($('#signals').value),minEmployees:Number($('#minE').value),maxEmployees:Number($('#maxE').value)})});
+    toast('ICP saved, leads re-ranked');await refresh();
+  }catch(err){toast(err.message)}
+};
+let t; $('#search').oninput=()=>{clearTimeout(t);t=setTimeout(refresh,250)};
+$('#tier').onchange=refresh;$('#sort').onchange=refresh;
+loadIcp().then(refresh).catch((e)=>toast(e.message));
+</script>
+</body>
+</html>

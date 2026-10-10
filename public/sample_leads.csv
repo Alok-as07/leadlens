@@ -1,0 +1,16 @@
+company,website,industry,employees,country,contact_name,title,email,linkedin_url,signals
+Northwind Health Systems,https://www.northwindhealth.com,Healthcare,220,United States,Dana Whitaker,VP of Operations,dana.whitaker@northwindhealth.com,https://linkedin.com/in/dana-whitaker,hiring; expanding
+Northwind Health Systems,northwindhealth.com,Healthcare,200-250,United States,Dana Whitaker,VP Operations,DANA.WHITAKER@northwindhealth.com,,funding
+Brightpath Logistics,https://brightpathlogistics.com,Logistics,85,Canada,Marcus Lee,Founder & CEO,marcus@brightpathlogistics.com,https://linkedin.com/in/marcus-lee,acquisition; hiring
+Cedar SaaS Labs,https://cedarlabs.io,SaaS,45,United States,Priya Nair,Head of Growth,priya@cedarlabs.io,https://linkedin.com/in/priya-nair,funding; new product
+Cedar SaaS Labs,https://cedarlabs.io,SaaS,45,United States,,,info@cedarlabs.io,,
+Lumen Fintech,https://lumenfin.com,Fintech,310,United Kingdom,Tom Hargreaves,Director of Technology,tom.h@lumenfin.com,,hiring
+Harbor Freight Forwarding,https://harborff.com,Logistics,1500,United States,Susan Cole,Operations Manager,susan.cole@harborff.com,,
+Pine Valley Dental,https://pinevalleydental.com,Healthcare,12,United States,Greg Alvarez,Owner,greg@pinevalleydental.com,,expanding
+Quark Software,https://quarksoft.dev,Software,60,Germany,Anna Keller,CTO,anna@quarksoft.dev,,funding
+Atlas Packaging,https://atlaspack.com,Manufacturing,130,United States,Bill Turner,Sales Rep,sales@atlaspack.com,,
+Rivet Analytics,https://rivetanalytics.ai,SaaS,28,United States,Jenna Ortiz,Co-founder,jenna@rivetanalytics,,hiring
+Spark Temp Mail Co,https://sparktemp.example,SaaS,40,United States,Test User,Manager,test@mailinator.com,,
+Meridian Care Partners,https://meridiancare.org,Healthcare,95,United States,Hiro Tanaka,Chief Operating Officer,hiro.tanaka@meridiancare.org,https://linkedin.com/in/hiro-tanaka,expanding; acquisition
+Oakline Freight,https://oaklinefreight.com,Logistics,60,United Kingdom,Lucy Grant,Director of Operations,,https://linkedin.com/in/lucy-grant,hiring
+Tidewater Software,https://tidewater.software,Software,18,Canada,Omar Haddad,Product Manager,omar@gmail.com,,
