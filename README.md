@@ -74,6 +74,31 @@ npm test                  # unit tests for scoring and normalization
 Then click **Load sample data** (`public/sample_leads.csv`, 15 rows with deliberate duplicates, a bad email, a disposable email and a role inbox).
 
 Docker: `docker build -t leadlens . && docker run -p 3000:3000 -e ANTHROPIC_API_KEY=... leadlens`
+### Deploy with Docker and AWS App Runner
+
+The repository includes [`apprunner.yaml`](./apprunner.yaml) for a source-repository App Runner deployment. It uses the existing [`Dockerfile`](./Dockerfile), listens on port `3000`, and sets production-safe defaults. For the ECR image flow below, configure these same settings in the App Runner service; App Runner does not read `apprunner.yaml` for image-based services. Environment variables and secrets should be configured in App Runner; do not put `ANTHROPIC_API_KEY` in this file or commit it.
+
+For an image-based deployment:
+
+1. Build and tag the image for an Amazon ECR repository:
+
+   ```bash
+   aws ecr create-repository --repository-name leadlens
+   docker build -t leadlens .
+   docker tag leadlens:latest <account-id>.dkr.ecr.<region>.amazonaws.com/leadlens:latest
+   ```
+
+2. Authenticate Docker and push the image:
+
+   ```bash
+   aws ecr get-login-password --region <region> | docker login --username AWS --password-stdin <account-id>.dkr.ecr.<region>.amazonaws.com
+   docker push <account-id>.dkr.ecr.<region>.amazonaws.com/leadlens:latest
+   ```
+
+3. Create an App Runner service from the ECR image, set the container port to `3000`, and add `ANTHROPIC_API_KEY` as a secret environment variable if LLM outreach is enabled. App Runner provides HTTPS and can redeploy when the image changes.
+
+The included SQLite database is suitable for local use and demonstrations only. App Runner storage is ephemeral, so production deployments must move persistence to PostgreSQL (for example, Amazon RDS) before relying on data across deployments or instance restarts. The current application does not yet include a PostgreSQL adapter.
+
 
 ## API
 
@@ -99,3 +124,5 @@ LeadLens does **not** scrape. It processes lead data the user already has the ri
 - Single-tenant. Next: auth, per-workspace ICPs, Postgres.
 - CRM push (HubSpot / Salesforce) and a SaaSquatch import connector.
 - Fuzzy company matching ("Acme Inc" vs "Acme Incorporated") beyond domain matching.
+
+

@@ -1,0 +1,20 @@
+version: 1.0
+runtime: docker
+
+build:
+  commands:
+    build:
+      - docker build -t leadlens .
+
+run:
+  command: node dist/main.js
+  network:
+    port: 3000
+    env: PORT
+  env:
+    - name: NODE_ENV
+      value: production
+    - name: DATA_DIR
+      value: /app/data
+    - name: ANTHROPIC_MODEL
+      value: claude-sonnet-5-5
